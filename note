@@ -1,0 +1,13 @@
+.github/workflows/build.yml
+name: Build APK
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - run: cd android && chmod +x gradlew && ./gradlew assembleDebug
+    - uses: actions/upload-artifact@v3
+      with:
+        name: app
+        path: android/app/build/outputs/apk/debug/app-debug.apk
