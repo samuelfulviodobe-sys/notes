@@ -1,0 +1,74 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Java (Temurin 11)
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Install Android SDK command-line tools and required components
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget unzip
+
+          # create SDK dirs
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          cd $HOME/android-sdk
+
+          # download Android command line tools (URL may change; using latest known pattern)
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip
+          rm cmdline-tools.zip
+          mkdir -p cmdline-tools/tools
+          mv cmdline-tools/* cmdline-tools/tools/ || true
+
+          export ANDROID_SDK_ROOT=$HOME/android-sdk
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
+
+          # install required SDK packages (adjust api / build-tools versions to match your project)
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/tools/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} "platform-tools" "platforms;android-31" "build-tools;33.0.2"
+
+      - name: Make gradlew executable
+        run: |
+          cd android || exit 0
+          chmod +x ./gradlew
+          cd ..
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/*.apk
