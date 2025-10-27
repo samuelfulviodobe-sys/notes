@@ -1,0 +1,34 @@
+# Exemplo de configuração para assinatura de APK de Release
+# 
+# INSTRUÇÕES:
+# 1. Copie este arquivo para gradle.properties:
+#    cp gradle.properties.example gradle.properties
+#
+# 2. Gere sua keystore (faça UMA VEZ apenas):
+#    keytool -genkey -v -keystore notebe-release.keystore \
+#      -alias notebe-key \
+#      -keyalg RSA \
+#      -keysize 2048 \
+#      -validity 10000
+#
+# 3. Preencha as informações abaixo com SUA keystore e senhas
+#
+# 4. NUNCA commite o arquivo gradle.properties no Git!
+#    (Ele já está no .gitignore)
+
+# Caminho para o arquivo keystore (relativo a esta pasta android/)
+NOTEBE_RELEASE_STORE_FILE=notebe-release.keystore
+
+# Alias da chave (o que você definiu ao criar a keystore)
+NOTEBE_RELEASE_KEY_ALIAS=notebe-key
+
+# Senha do arquivo keystore
+NOTEBE_RELEASE_STORE_PASSWORD=SUA_SENHA_KEYSTORE_AQUI
+
+# Senha da chave (normalmente a mesma que a keystore)
+NOTEBE_RELEASE_KEY_PASSWORD=SUA_SENHA_CHAVE_AQUI
+
+# ⚠️ IMPORTANTE:
+# - Guarde estas senhas em local seguro (cofre de senhas)
+# - Faça backup da keystore em local seguro
+# - SE PERDER A KEYSTORE, não poderá atualizar o app na Google Play!
