@@ -1,0 +1,38 @@
+name: Build APK
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Fix All Versions
+      run: |
+        cd android
+        # Corrige AGP
+        sed -i 's/com.android.tools.build:gradle:[0-9.*]*/com.android.tools.build:gradle:8.4.0/g' build.gradle
+        # Corrige compileSdk
+        sed -i 's/compileSdk [0-9]*/compileSdk 34/g' app/build.gradle
+        # Corrige targetSdk
+        sed -i 's/targetSdk [0-9]*/targetSdk 34/g' app/build.gradle
+      
+    - name: Build APK
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew clean assembleDebug
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug
+        path: android/app/build/outputs/apk/debug/app-debug.apk
